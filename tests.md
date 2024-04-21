@@ -500,3 +500,36 @@ RECV 127.0.0.1:45715 | CONFIRM
 ### Conclusion
 
 This test confirms that when `ClientA` and `ClientB` join the same channel, they can communicate with each other. The server's channel management functionality is working as intended for both TCP and UDP users.
+
+## Test Case 12: Confirm was not sent by client 
+
+### Client Input
+
+User initiates UDP connection and not send confirmation correctly
+
+```bash
+xtrifo00@DIMA:~/IPK2/IPK$ ./ipk24chat-client -t tcp -s 127.0.0.1 
+/auth xtrifo00 6e28ee1e-5c6f-4ef4-80e3-a368724ccb39 DT
+Success: Authenticated successfully
+Server: DT has joined default
+```
+
+### Server Output
+
+The server logs the communication as follows:
+
+```bash
+xtrifo00@DIMA:~/IPK_Server$ ./ipk24chat-server
+RECV 127.0.0.1:55118 | AUTH
+SENT 127.0.0.1:55118 | CONFIRM
+SENT 127.0.0.1:55118 | REPLY
+RECV 127.0.0.1:55118 | CONFIRM
+SENT 127.0.0.1:55118 | MSG
+SENT 127.0.0.1:55118 | MSG
+SENT 127.0.0.1:55118 | MSG
+SENT 127.0.0.1:55118 | MSG (here server figure out that client did not send confirmation and remove him from the list)
+```
+
+### Conclusion 
+
+This test confirms that when client did not send confirmation, server remove him from the list of clients.
