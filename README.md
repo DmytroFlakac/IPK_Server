@@ -56,5 +56,9 @@ This server is open-source, licensed under the MIT License.
 - **Extensible Design**: Modular architecture makes it easy to add new features or protocols.
 
 ## Bibliography
-- Stevens, W. R. (1994). UNIX Network Programming. Prentice Hall.
-- Microsoft .NET Documentation.
+- [Socket Programming in C#](https://docs.microsoft.com/en-us/dotnet/framework/network-programming/socket-code-examples)
+- [C# Threading](https://docs.microsoft.com/en-us/dotnet/standard/threading/)
+- [TCP vs. UDP](https://www.cloudflare.com/learning/network-layer/what-is-udp/)
+- [Stack Overflow](https://stackoverflow.com/questions/46882815/c-sharp-sockets-tcp-udp)
+- [delfstack](https://www.delftstack.com/howto/csharp/csharp-udp-server/)
+```
