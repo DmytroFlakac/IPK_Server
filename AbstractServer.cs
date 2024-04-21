@@ -11,6 +11,7 @@ namespace Server
         protected int Port;
         protected Dictionary<string, List<User>> Channels;
         protected readonly object ClientsLock = new object();
+        protected readonly object ClientsLock1 = new object();
 
         protected string ChannelId;
         
@@ -164,11 +165,14 @@ namespace Server
             }
             
             List<Task> tasks = new List<Task>();
-            foreach (User user in usersToMessage)
+            lock (ClientsLock1)
             {
-                if (user == sender || !user.IsAuthenticated)
-                    continue;
-                tasks.Add(user.WriteAsync(message));
+                foreach (User user in usersToMessage)
+                {
+                    if (user == sender || !user.IsAuthenticated)
+                        continue;
+                    tasks.Add(user.WriteAsync(message));
+                }
             }
             await Task.WhenAll(tasks);
         }

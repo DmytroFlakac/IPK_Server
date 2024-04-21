@@ -55,6 +55,7 @@ namespace Server
         {   
             CancellationTokenSource cts2 = new CancellationTokenSource();
             UdpMessageHelper = new UdpMessageHelper(user);
+            var userActiveTask = Task.Run(() => AcctiveUser(user, cts2));
             try
             {
                 int messageID = UdpMessageHelper.GetMessageID(message);
@@ -63,7 +64,7 @@ namespace Server
                 {
                     cts.Register(() => cts2.Cancel());
                     User.MessageType messageType = user.GetMessageType(message);
-                    Console.WriteLine($"RECV {user.UserServerPort()} | {messageType} {BitConverter.ToString(message)}");
+                    Console.WriteLine($"RECV {user.UserServerPort()} | {messageType}");
                     
                     switch (messageType)
                     {
@@ -80,9 +81,11 @@ namespace Server
                             user.SetConfirmation(message);
                             break;
                         case User.MessageType.ERR:
+                            cts2.Cancel();
                             HandleERR_FROM(user, message);
                             break;
                         case User.MessageType.BYE:
+                            cts2.Cancel();
                             HandleBye(user, message);
                             break;
                         default:
@@ -91,8 +94,6 @@ namespace Server
                             CleanUser(user);
                             break;
                     }
-                    if(!user.Active)
-                        cts2.Cancel();
                     while(messageID == currentMessageID && !cts2.IsCancellationRequested)
                     {
                         if (!cts2.IsCancellationRequested)
@@ -113,7 +114,32 @@ namespace Server
                 CleanUser(user);
             }
         }
-        
+
+        public async void AcctiveUser(User user, CancellationTokenSource cts)
+        {
+            try
+            {
+                while (user.Active)
+                {
+                    //pass
+                }
+            }
+            catch (Exception)
+            {
+                // Ignore
+            }
+            finally
+            {
+                
+                if (!cts.Token.IsCancellationRequested)
+                {
+                    cts.Cancel();
+                    CleanUser(user);
+                }
+            }
+        }
+
+
         public override async void HandleAuth(User user, byte[]? message)
         {
             int refMessageId = UdpMessageHelper.GetMessageID(message);
@@ -199,8 +225,8 @@ namespace Server
         {
             user.SendConfirmation(UdpMessageHelper.GetMessageID(message));
             lock (ClientsLock) Channels[user.ChannelId].Remove(user);
+            var broadcast = BroadcastMessage($"MSG FROM Server IS {user.DisplayName} has left {user.ChannelId}", null, user.ChannelId);
             user.Disconnect();
-            var broadcast = BroadcastMessage($"MSG FROM Server IS {user.DisplayName} has left {user.ChannelId}", user, user.ChannelId);
         }
 
         public override async void CleanUser(User user)
@@ -209,7 +235,8 @@ namespace Server
             {
                 user.IsAuthenticated = false;
                 user.MessageId = user.MessageId + 1;
-                await user.WriteAsyncUdp(UdpMessageHelper.BuildBye(user.MessageId), _maxRetransmissions);
+                if(user.Active)
+                    await user.WriteAsyncUdp(UdpMessageHelper.BuildBye(user.MessageId), _maxRetransmissions);
                 var broadcast = BroadcastMessage($"MSG FROM Server IS {user.DisplayName} has left {user.ChannelId}", user,
                     user.ChannelId);
                 user.Disconnect();

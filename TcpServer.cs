@@ -109,11 +109,11 @@ public class TcpServer : AbstractServer
     
     public override async void HandleAuth(User user, string message)
     {
-        Console.WriteLine($"RECV {user.UserServerPort()} | AUTH {message}");
+        Console.WriteLine($"RECV {user.UserServerPort()} | AUTH");
+        var parts = message.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        user.SetUsername(parts[1]);
         if (CheckAuth(user, message))
         {
-            var parts = message.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            user.SetUsername(parts[1]);
             user.SetDisplayName(parts[3]);
             user.SetAuthenticated();
             await user.WriteAsync("REPLY OK IS Authenticated successfully");
@@ -125,7 +125,7 @@ public class TcpServer : AbstractServer
     
     public override async void HandleJoin(User user, string message)
     {
-        Console.WriteLine($"RECV {user.UserServerPort()} | JOIN {message}");
+        Console.WriteLine($"RECV {user.UserServerPort()} | JOIN");
         var match = Regex.Match(message, user.JoinRegex, RegexOptions.IgnoreCase);
         if (!match.Success)
         {
@@ -149,11 +149,13 @@ public class TcpServer : AbstractServer
         if (parts.Length != 6 || parts[0].ToUpper() != "AUTH" || parts[4].ToUpper() != "USING" || 
             !Regex.IsMatch(parts[3], user.DisplayRegex) || !Regex.IsMatch(parts[5], user.BaseRegex))
         {
+            user.SetUsername("Unknown");
             user.WriteAsync("REPLY NOK IS Invalid auth format");
             return false;
         }
         if (ExistedUser(user))
         {
+            user.SetUsername("Unknown");
             user.WriteAsync("REPLY NOK IS User already connected");
             return false;
         }
@@ -163,14 +165,13 @@ public class TcpServer : AbstractServer
     
     public override async void HandleMessage(User user, string message)
     {
-        Console.WriteLine($"RECV {user.UserServerPort()} | MSG {message}");
+        Console.WriteLine($"RECV {user.UserServerPort()} | MSG");
         if (!CheckMessage(user, message))
         {
             await user.WriteAsync("ERR FROM Server IS Invalid message format");
             CleanUser(user);
             return;
         }
-        // Console.WriteLine("Broadcast in HandleMessage");
         user.SetDisplayName(message.Split(" ")[2]);
         var broadcast = BroadcastMessage(message, user, user.ChannelId);
     }
@@ -186,7 +187,7 @@ public class TcpServer : AbstractServer
     {
         if (CheckMessage(user, message))
         {
-            Console.WriteLine($"RECV {user.UserServerPort()} | ERR {message}");
+            Console.WriteLine($"RECV {user.UserServerPort()} | ERR");
             user.SetDisplayName(message.Split(" ")[2]);
             CleanUser(user);
         }

@@ -63,7 +63,7 @@ public class TcpUser : User
     {
         try
         {
-            Console.WriteLine($"SENT {Host}:{Port} | {GetMessageType(message)} {message}");
+            Console.WriteLine($"SENT {Host}:{Port} | {GetMessageType(message)}");
             var buffer = Encoding.UTF8.GetBytes(message + "\r\n");
             await _stream.WriteAsync(buffer, 0, buffer.Length);
         }

@@ -57,8 +57,7 @@ public class UdpUser : User
         {
             ++MessageId;
             byte[]? buffer = UdpMessageHelper.BuildMessage(message, MessageId);
-            Console.WriteLine(
-                $"SENT {Host}:{Port} | {UdpMessageHelper.GetMessageType(buffer)} {BitConverter.ToString(buffer)}");
+            Console.WriteLine($"SENT {Host}:{Port} | {UdpMessageHelper.GetMessageType(buffer)}");
             await _udpClient.SendAsync(buffer, buffer.Length, _endPoint);
             await WaitConfirmation(buffer, _maxRetransmissions);
         }
@@ -70,7 +69,7 @@ public class UdpUser : User
     
     public override async Task WriteAsyncUdp(byte[]? message, int retransmissions)
     {
-        Console.WriteLine($"SENT {Host}:{Port} | {UdpMessageHelper.GetMessageType(message)} {BitConverter.ToString(message)}");
+        Console.WriteLine($"SENT {Host}:{Port} | {UdpMessageHelper.GetMessageType(message)}");
         await _udpClient.SendAsync(message, message.Length, _endPoint);
         if (retransmissions > 0)
             await WaitConfirmation(message, retransmissions);
@@ -78,7 +77,7 @@ public class UdpUser : User
     
     public override void SendConfirmation(int messageID)
     {
-        Console.WriteLine($"SENT {Host}:{Port} | CONFIRM {BitConverter.ToString(UdpMessageHelper.BuildConfirm(messageID))}");
+        Console.WriteLine($"SENT {Host}:{Port} | CONFIRM");
         byte[] messageBytes = UdpMessageHelper.BuildConfirm(messageID);
         _udpClient.Send(messageBytes, messageBytes.Length, _endPoint);
     }
@@ -93,7 +92,7 @@ public class UdpUser : User
                 if (Confirm == null)
                 {
                     Confirm = _udpClient.Receive(ref _endPoint);
-                    Console.WriteLine($"RECV {Host}:{Port} | {UdpMessageHelper.GetMessageType(Confirm)} {BitConverter.ToString(Confirm)}");
+                    Console.WriteLine($"RECV {Host}:{Port} | {UdpMessageHelper.GetMessageType(Confirm)}");
                 }
                 if (UdpMessageHelper.GetMessageType(Confirm) == UdpMessageHelper.MessageType.CONFIRM &&
                     UdpMessageHelper.GetMessageID(Confirm) == MessageId)
@@ -103,7 +102,7 @@ public class UdpUser : User
                 }
                 else
                 {
-                    Console.WriteLine($"SENT {Host}:{Port} | {UdpMessageHelper.GetMessageType(messageBytes)} {BitConverter.ToString(messageBytes)}");
+                    Console.WriteLine($"SENT {Host}:{Port} | {UdpMessageHelper.GetMessageType(messageBytes)}");
                     await _udpClient.SendAsync(messageBytes, messageBytes.Length, _endPoint);
                     Confirm = null;
                 }
@@ -112,11 +111,20 @@ public class UdpUser : User
             {
                 if (e.SocketErrorCode == SocketError.TimedOut)
                 {
-                    Console.WriteLine($"SENT {Host}:{Port} | {UdpMessageHelper.GetMessageType(messageBytes)} {BitConverter.ToString(messageBytes)}");
+                    Console.WriteLine($"SENT {Host}:{Port} | {UdpMessageHelper.GetMessageType(messageBytes)}");
                     await _udpClient.SendAsync(messageBytes, messageBytes.Length, _endPoint);
                 }
             }
+            catch (ObjectDisposedException)
+            {
+                return false;
+            }
+            catch (Exception e)
+            {
+                //ignore
+            }
         }
+        Active = false;
         return false;
     }
     
