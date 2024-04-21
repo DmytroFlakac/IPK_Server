@@ -421,3 +421,81 @@ SENT 127.0.0.1:58820 | MSG
 This test confirms that when `ClientA` sends a message over UDP, it is successfully broadcasted by the server and received by `ClientB` who is connected via TCP. The server's broadcasting functionality supports communication from UDP to TCP clients effectively.
 
 
+## Test Case 11: Joining channel
+
+### Preconditions
+- Server is running and ready to accept both TCP and UDP connections.
+- One client is prepared to connect via UDP and another via TCP.
+
+### Test Steps
+1. `ClientA` (UDP) connects and authenticates.
+2. `ClientB` (TCP) connects and authenticates.
+3. `ClientA` (UDP) joins a channel.
+4.  `ClientB` (TCP) joins a channel.
+5. Verify that `ClientA` and `ClientB` are in the same channel.
+6. Verify that `ClientA` and `ClientB` receive the broadcasted message.
+### ClientA(UDP)
+
+```
+ClientA@DIMA:~/IPK2/IPK$ ./ipk24chat-client -t udp -s 127.0.0.1
+/auth ClientA 6e28ee1e-5c6f-4ef4-80e3-a368724ccb39 user1
+Success: Authenticated successfully
+Server: user1 has joined default
+/join channel1
+Server: user1 has joined channel1
+Success: Joined channel1
+Server: user2 has joined channel1
+Broadcasting a message from user1 to all users in channel1
+user2: Broadcasting a message from user2 to all users in channel1
+```
+
+### ClientB(TCP)
+
+```
+ClientA@DIMA:~/IPK2/IPK$ ./ipk24chat-client -t tcp -s 127.0.0.1
+/auth ClientB Password123 user2
+Success: Authenticated successfully
+Server: user2 has joined default
+/join channel1
+Server: user2 has joined channel1
+Success: Joined channel1
+user1: Broadcasting a message from user1 to all users in channel1
+Broadcasting a message from user2 to all users in channel1
+```
+
+### Server Output
+
+```
+xtrifo00@DIMA:~/IPK_Server$ ./ipk24chat-server
+RECV 127.0.0.1:45715 | AUTH
+SENT 127.0.0.1:45715 | CONFIRM
+SENT 127.0.0.1:45715 | REPLY
+RECV 127.0.0.1:45715 | CONFIRM
+SENT 127.0.0.1:45715 | MSG
+RECV 127.0.0.1:45715 | CONFIRM
+RECV 127.0.0.1:45715 | JOIN
+SENT 127.0.0.1:45715 | CONFIRM
+SENT 127.0.0.1:45715 | MSG
+RECV 127.0.0.1:45715 | CONFIRM
+SENT 127.0.0.1:45715 | REPLY
+RECV 127.0.0.1:45715 | CONFIRM
+RECV 127.0.0.1:36156 | AUTH
+SENT 127.0.0.1:36156 | REPLY
+SENT 127.0.0.1:36156 | MSG
+RECV 127.0.0.1:36156 | JOIN
+SENT 127.0.0.1:36156 | MSG
+SENT 127.0.0.1:36156 | REPLY
+SENT 127.0.0.1:45715 | MSG
+RECV 127.0.0.1:45715 | CONFIRM
+RECV 127.0.0.1:45715 | MSG
+SENT 127.0.0.1:45715 | CONFIRM
+SENT 127.0.0.1:36156 | MSG
+RECV 127.0.0.1:36156 | MSG
+SENT 127.0.0.1:45715 | MSG
+RECV 127.0.0.1:45715 | CONFIRM
+
+```
+
+### Conclusion
+
+This test confirms that when `ClientA` and `ClientB` join the same channel, they can communicate with each other. The server's channel management functionality is working as intended for both TCP and UDP users.

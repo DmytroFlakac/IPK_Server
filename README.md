@@ -8,9 +8,6 @@
     - [UML Diagrams](#uml-diagrams)
     - [Interesting Code Sections](#interesting-code-sections)
 - [Testing](#testing)
-    - [Test Environment](#test-environment)
-    - [Test Cases](#test-cases)
-    - [Comparison with Similar Tools](#comparison-with-similar-tools)
 - [Extra Features](#extra-features)
 - [Bibliography](#bibliography)
 - [Usage](#usage)
@@ -34,17 +31,7 @@ Understanding the server side of the IPK24-CHAT requires knowledge of:
 - **Connection Management**: `TcpServer.cs` and `UdpServer.cs` manage the lifecycle of network connections, demonstrating socket programming.
 - **User Handling**: `AbstractUser.cs` and its subclasses like `TcpUser.cs` encapsulate user operations and state management.
 
-## Testing
-### Test Environment
-- **Network Setup**: Local network with multiple client instances connecting to the server.
-- **Hardware Used**: Server - Linux Server on AWS EC2; Clients - Various operating systems and hardware configurations.
-- **Software Versions**: .NET 8.0.
-### Test Cases
-#### Concurrent Connections
-- **Objective**: Ensure the server can handle multiple concurrent connections without performance degradation.
-- **Procedure**: Simulate multiple clients connecting to the server using both TCP and UDP.
-- **Expected Output**: All clients maintain stable connections and can exchange messages reliably.
-- **Actual Output**: As expected.
+## [Testing](tests.md)
 
 ## Usage
 1. Deploy the server on a machine with a public IP.
